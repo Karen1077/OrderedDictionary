@@ -16,99 +16,20 @@ namespace OrderedDictionary
             keyList = new List<TKey>();
         }
 
-        public IEnumerator<KeyValuePair<TKey, TValue>> GetEnumerator()
-        {
-            foreach (var key in keyList)
-            {
-                yield return new KeyValuePair<TKey, TValue>(key, dictionary[key]);
-            }
-        }
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return GetEnumerator();
-        }
-
         public void Add(KeyValuePair<TKey, TValue> item)
         {
-            if (!dictionary.ContainsKey(item.Key))
-            {
-                keyList.Add(item.Key);
-            }
-            dictionary[item.Key] = item.Value;
+            Add(item.Key, item.Value);
         }
 
-        public void Add(TKey key, TValue value)
+        public bool Remove(KeyValuePair<TKey, TValue> item)
         {
-            if (key == null)
-            {
-                throw new ArgumentNullException(nameof(key));
-            }
-
-            if (dictionary.ContainsKey(key))
-            {
-                throw new ArgumentException("Key has already been added.");
-            }
-
-            keyList.Add(key);
-            dictionary.Add(key, value);
-        }
-
-        public bool ContainsKey(TKey key)
-        {
-            return dictionary.ContainsKey(key);
-        }
-
-        public ICollection<TKey> Keys => keyList;
-
-        public bool Remove(TKey key)
-        {
-            if (key == null)
-            {
-                throw new ArgumentNullException(nameof(key));
-            }
-
-            if (!dictionary.ContainsKey(key))
+            if (!dictionary.Contains(item))
             {
                 return false;
             }
-
-            keyList.Remove(key);
-            dictionary.Remove(key);
-
-            return true;
+            keyList.Remove(item.Key);
+            return dictionary.Remove(item.Key);
         }
-
-        public bool TryGetValue(TKey key, out TValue value)
-        {
-            return dictionary.TryGetValue(key, out value);
-        }
-
-        public ICollection<TValue> Values => dictionary.Values;
-
-        public TValue this[TKey key]
-        {
-            get => dictionary[key];
-            set
-            {
-                if (key == null)
-                {
-                    throw new ArgumentNullException(nameof(key));
-                }
-
-                dictionary[key] = value;
-            }
-        }
-
-        public void Clear()
-        {
-            dictionary.Clear();
-            keyList.Clear();
-        }
-
-        public int Count => dictionary.Count;
-
-        public bool IsReadOnly => false;
 
         public bool Contains(KeyValuePair<TKey, TValue> item)
         {
@@ -155,14 +76,86 @@ namespace OrderedDictionary
             }
         }
 
-        public bool Remove(KeyValuePair<TKey, TValue> item)
+        public IEnumerator<KeyValuePair<TKey, TValue>> GetEnumerator()
         {
-            if (!dictionary.Contains(item))
+            return keyList.Select(key => new KeyValuePair<TKey, TValue>(key, dictionary[key])).GetEnumerator();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
+        }
+
+        public void Add(TKey key, TValue value)
+        {
+            if (key == null)
+            {
+                throw new ArgumentNullException(nameof(key));
+            }
+
+            if (dictionary.ContainsKey(key))
+            {
+                throw new ArgumentException("Key has already been added.");
+            }
+
+            keyList.Add(key);
+            dictionary.Add(key, value);
+        }
+
+        public bool ContainsKey(TKey key)
+        {
+            return dictionary.ContainsKey(key);
+        }
+
+        public bool Remove(TKey key)
+        {
+            if (key == null)
+            {
+                throw new ArgumentNullException(nameof(key));
+            }
+
+            if (!dictionary.ContainsKey(key))
             {
                 return false;
             }
-            keyList.Remove(item.Key);
-            return dictionary.Remove(item.Key);
+
+            keyList.Remove(key);
+            dictionary.Remove(key);
+
+            return true;
         }
+
+        public bool TryGetValue(TKey key, out TValue value)
+        {
+            return dictionary.TryGetValue(key, out value);
+        }
+
+        public ICollection<TKey> Keys => keyList;
+
+        public ICollection<TValue> Values => keyList.Select(key => dictionary[key]).ToList();
+
+        public TValue this[TKey key]
+        {
+            get => dictionary[key];
+            set
+            {
+                if (key == null)
+                {
+                    throw new ArgumentNullException(nameof(key));
+                }
+
+                dictionary[key] = value;
+            }
+        }
+
+        public void Clear()
+        {
+            dictionary.Clear();
+            keyList.Clear();
+        }
+
+        public int Count => dictionary.Count;
+
+        public bool IsReadOnly => false;
     }
 }
